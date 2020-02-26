@@ -31,7 +31,7 @@ class App(tk.Tk):
     def init_ui(self):
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
-        w = 200
+        w = 260
         h = 60
         # x = (screen_width/2) - (w/2)
         # y = (screen_height/2) - (h/2)
@@ -40,8 +40,8 @@ class App(tk.Tk):
         self.geometry('%dx%d+%d+%d' % (w, h, x, y))
         self.title("Trading agent")
         button = tk.Button(self, text='종료 (Exit)', command=lambda: self.close())
-        button.pack(expand=1, fill='both', padx=8, pady=8)
-        button.configure(font='Helvetica 16 bold')
+        button.pack(expand=1, fill='both', padx=12, pady=12)
+        # button.configure(font='Helvetica 16 bold')
         # tk.Button(self, text='테스트', command=lambda: self.test()).pack(fill='both', padx=20, pady=(0,5))
         self.protocol('WM_DELETE_WINDOW', self.close)
 

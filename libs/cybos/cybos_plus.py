@@ -37,7 +37,7 @@ class CybosPlus:
         else:
             return 0
 
-    def get_price(assets):
+    def get_price(self, assets):
         for asset in assets:
             obj = StockMst(self.redis, self.logger)
             status = obj.request(asset)

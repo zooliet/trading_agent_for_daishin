@@ -27,7 +27,7 @@ class CybosPlus:
             self.logger.warn("Cybos Plus 서버와 연결이 되지 않습니다.")
             return
 
-        eval(f"self.{token[0]}({token[1:]})")
+        eval(f"self.{tokens[0]}({tokens[1:]})")
 
     def check_connection(self):
         if windows_platform:

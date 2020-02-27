@@ -46,8 +46,8 @@ class RealtimePrice:
             'action': 'realtime_price',
             'code': code,
             'name': name,
-            'current', cprice,
-            'volume', vol
+            'current': cprice,
+            'volume': vol
         }
         message = json.dumps(message)
         self.redis.publish('rekcle:cybos:response', message)

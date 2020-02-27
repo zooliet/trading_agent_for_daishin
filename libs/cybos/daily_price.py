@@ -38,10 +38,10 @@ class DailyPrice:
             #     'code': code,
             #     'name': name,
             #     'low': low,
-            #     'high', high,
-            #     'open', open,
-            #     'current', cprice,
-            #     'volume', vol
+            #     'high': high,
+            #     'open': open,
+            #     'current': cprice,
+            #     'volume': vol
             # }
             # message = json.dumps(message)
             # self.redis.publish('rekcle:cybos:response', message)

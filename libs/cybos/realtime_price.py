@@ -5,6 +5,23 @@ if sys.platform == 'win32':
     import win32com.client
     import pythoncom
 
+class EventHandler:
+    def set_params(self, client):
+        self.client = client
+
+    def OnReceived(self):
+        print("here")
+        code = self.client.GetHeaderValue(0)  # 종목코도
+        name = self.client.GetHeaderValue(1)  # 종목명
+        timess = self.client.GetHeaderValue(18)  # 초
+        exFlag = self.client.GetHeaderValue(19)  # 예상체결 플래그
+        cprice = self.client.GetHeaderValue(13)  # 현재가
+        diff = self.client.GetHeaderValue(2)  # 대비
+        cVol = self.client.GetHeaderValue(17)  # 순간체결수량
+        vol = self.client.GetHeaderValue(9)  # 거래량
+
+
+
 class RealtimePrice:
     def __init__(self, redis, logger=None):
         self.redis = redis
@@ -17,7 +34,7 @@ class RealtimePrice:
         self.obj = win32com.client.Dispatch("DsCbo1.StockCur")
         self.obj.SetInputValue(0, asset)
 
-        handler = win32com.client.WithEvents(self.obj, self)
+        handler = win32com.client.WithEvents(self.obj, EventHandler)
         print(handler)
         # handler.set_params(self.objStockCur)
         self.obj.Subscribe()
@@ -27,16 +44,6 @@ class RealtimePrice:
         obj = win32com.client.Dispatch("DsCbo1.StockCur")
 
 
-    def OnReceived(self):
-        print("here")
-        code = self.obj.GetHeaderValue(0)  # 종목코도
-        name = self.obj.GetHeaderValue(1)  # 종목명
-        timess = self.obj.GetHeaderValue(18)  # 초
-        exFlag = self.obj.GetHeaderValue(19)  # 예상체결 플래그
-        cprice = self.obj.GetHeaderValue(13)  # 현재가
-        diff = self.obj.GetHeaderValue(2)  # 대비
-        cVol = self.obj.GetHeaderValue(17)  # 순간체결수량
-        vol = self.obj.GetHeaderValue(9)  # 거래량
 
 
     # def request(self, asset):

@@ -77,15 +77,15 @@ class CybosPlus:
     #                 self.watch_list.append(obj)
 
 
-
-
-            stockMst = win32com.client.Dispatch("DsCbo1.StockMst")
-            stockMst.SetInputValue(0, asset)
-            stockMst.BlockRequest()
-
-            while stockMst.GetDibStatus() == 1:
-                time.sleep(0.1)
-
-            if stockMst.GetDibMsg1() == 0:
-                current_price = stockMst.GetHeaderValue(11)
-                self.logger.info(f"{code} 현재가: {current_price}")
+            #
+            #
+            # stockMst = win32com.client.Dispatch("DsCbo1.StockMst")
+            # stockMst.SetInputValue(0, asset)
+            # stockMst.BlockRequest()
+            #
+            # while stockMst.GetDibStatus() == 1:
+            #     time.sleep(0.1)
+            #
+            # if stockMst.GetDibMsg1() == 0:
+            #     current_price = stockMst.GetHeaderValue(11)
+            #     self.logger.info(f"{code} 현재가: {current_price}")

@@ -40,8 +40,17 @@ class RealtimePrice:
         diff = self.client.GetHeaderValue(2)  # 대비
         cVol = self.client.GetHeaderValue(17)  # 순간체결수량
         vol = self.client.GetHeaderValue(9)  # 거래량
-        self.logger.info(f"{name}({code}): {cprice}")
+        self.logger.debug(f"{name}({code}): {cprice}")
 
+        message = {
+            'action': 'realtime_price'
+            'code': code,
+            'name': name,
+            'current', cprice,
+            'volume', vol
+        }
+        message = json.dumps(message)
+        self.redis.publish('rekcle:cybos:response', message)
 
     def cancel(self, asset):
         self.client.Unsubscribe()

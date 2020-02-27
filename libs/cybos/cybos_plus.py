@@ -59,3 +59,8 @@ class CybosPlus:
                 client = clients[0]
                 client.cancel(asset)
                 self.watched.remove(client)
+
+    def get_daily_price(self, assets):
+        for asset in assets:
+            client = DailyPrice(self.redis, self.logger)
+            client.request(asset)

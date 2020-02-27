@@ -1,5 +1,6 @@
 
 import logging
+import json
 import sys
 if sys.platform == 'win32':
     import win32com.client
@@ -32,7 +33,7 @@ class CurrentPrice:
             bid = client.GetHeaderValue(17)   #매수호가
             vol= client.GetHeaderValue(18)   #거래량
             vol_value= client.GetHeaderValue(19)  #거래대금
-            self.logger.debug(f"{name}({code}): {open}(시가), {low}(저가), {high}(고가), {cprice}(종가), {vol}(거래량)")
+            self.logger.debug(f"{name}({code}): {open}(시가), {low}(저가), {high}(고가), {cprice}(현재가), {vol}(거래량)")
 
             message = {
                 'action': 'current_price',

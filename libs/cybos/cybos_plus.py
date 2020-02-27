@@ -19,7 +19,7 @@ class CybosPlus:
         else:
             self.logger = logging.getLogger(__name__)
 
-        self.realtime_watched = []
+        self.watched = []
 
 
     def process(self, tokens=[]):
@@ -33,59 +33,29 @@ class CybosPlus:
 
     def check_connection(self):
         if windows_platform:
-            objCpCybos = win32com.client.Dispatch("CpUtil.CpCybos")
-            bConnect = objCpCybos.IsConnect
+            client = win32com.client.Dispatch("CpUtil.CpCybos")
+            bConnect = client.IsConnect
             return bConnect  # 0: fail, 1: success
         else:
             return 0
 
     def get_current_price(self, assets):
         for asset in assets:
-            obj = CurrentPrice(self.redis, self.logger)
-            status = obj.request(asset)
+            client = CurrentPrice(self.redis, self.logger)
+            client.request(asset)
 
     def get_realtime_price(self, assets):
+        watched = list(map(lambda x: x.asset, self.watched))
         for asset in assets:
-            obj = RealtimePrice(self.redis, self.logger)
-            status = obj.join(asset)
-            print(status)
-            self.realtime_watched.append(obj)
+            if asset not in watched:
+                client = RealtimePrice(self.redis, self.logger)
+                client.join(asset)
+                self.watched.append(client)
 
     def cancel_realtime_price(self, assets):
         for asset in assets:
-            obj = RealtimePrice(self.redis, self.logger)
-            status = obj.cancel(asset)
-
-
-
-
-    #     watched = list(map(lambda x: x.asset, self.watch_list))
-    #     for asset in assets:
-    #         if asset not in watched:
-    #             obj = StockCur(asset, self.logger)
-    #             status = obj.request()
-    #             if status:
-    #                 self.watch_list.append(obj)
-    #
-    # def cancel_realtime_price(assets):
-    #     watched = list(map(lambda x: x.asset, self.watch_list))
-    #     for asset in assets:
-    #         if asset not in watched:
-    #             obj = StockCur(asset, self.logger)
-    #             status = obj.request()
-    #             if status:
-    #                 self.watch_list.append(obj)
-
-
-            #
-            #
-            # stockMst = win32com.client.Dispatch("DsCbo1.StockMst")
-            # stockMst.SetInputValue(0, asset)
-            # stockMst.BlockRequest()
-            #
-            # while stockMst.GetDibStatus() == 1:
-            #     time.sleep(0.1)
-            #
-            # if stockMst.GetDibMsg1() == 0:
-            #     current_price = stockMst.GetHeaderValue(11)
-            #     self.logger.info(f"{code} 현재가: {current_price}")
+            clients = list(filter(lambda x: x.asset == asset, self.watched))
+            if clients:
+                client = clients[0]
+                client.cancel(asset)
+                self.watched.remove(client)

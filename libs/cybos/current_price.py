@@ -14,14 +14,11 @@ class CurrentPrice:
             self.logger = logging.getLogger(__name__)
 
     def request(self, asset):
-        obj = win32com.client.Dispatch("DsCbo1.StockMst")
-        obj.SetInputValue(0, asset)
-        obj.BlockRequest()
+        client = win32com.client.Dispatch("DsCbo1.StockMst")
+        client.SetInputValue(0, asset)
+        client.BlockRequest()
 
-        if obj.GetDibStatus() == 0:  # ready to send
-            self.logger.info(obj.GetDibMsg1())
-            current_price = obj.GetHeaderValue(11)
+        if client.GetDibStatus() == 0:  # ready to send
+            self.logger.info(client.GetDibMsg1())
+            current_price = client.GetHeaderValue(11)
             self.logger.info(f"[현재가] {asset}: {current_price}")
-            return 1
-        else:
-            return 0

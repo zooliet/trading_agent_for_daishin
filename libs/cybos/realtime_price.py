@@ -27,7 +27,7 @@ class RealtimePrice:
         self.client.SetInputValue(0, asset)
 
         handler = win32com.client.WithEvents(self.client, EventHandler)
-        handler.set_params(self.client)
+        handler.set_params(self)
         self.client.Subscribe()
 
 

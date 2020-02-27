@@ -33,7 +33,7 @@ class DailyPrice:
                 self.logger.debug(f"{asset} on {date}: {open}(시가), {low}(저가), {high}(고가), {close}(종가), {vol}(거래량)")
 
             message = {
-                'action': 'daily_price'
+                'action': 'daily_price',
                 'code': asset,
                 'date': date,
                 'low': low,

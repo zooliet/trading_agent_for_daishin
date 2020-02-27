@@ -44,14 +44,14 @@ class CybosPlus:
             obj = CurrentPrice(self.redis, self.logger)
             status = obj.request(asset)
 
-    def get_realtime_price(assets):
+    def get_realtime_price(self, assets):
         for asset in assets:
             obj = RealtimePrice(self.redis, self.logger)
             status = obj.join(asset)
             print(status)
             self.realtime_watched.append(obj)
 
-    def cancel_realtime_price(assets):
+    def cancel_realtime_price(self, assets):
         for asset in assets:
             obj = RealtimePrice(self.redis, self.logger)
             status = obj.cancel(asset)

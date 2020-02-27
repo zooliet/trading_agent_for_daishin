@@ -9,7 +9,7 @@ if sys.platform == 'win32':
     import pythoncom
     windows_platform = True
 
-from libs.cybos import CurrentPrice, RealtimePrice
+from libs.cybos import CurrentPrice, RealtimePrice, DailyPrice
 
 class CybosPlus:
     def __init__(self, redis, logger=None):

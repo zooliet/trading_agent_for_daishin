@@ -43,7 +43,7 @@ class RealtimePrice:
         self.logger.debug(f"{name}({code}): {cprice}")
 
         message = {
-            'action': 'realtime_price'
+            'action': 'realtime_price',
             'code': code,
             'name': name,
             'current', cprice,

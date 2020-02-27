@@ -35,7 +35,7 @@ class CurrentPrice:
             self.logger.debug(f"{name}({code}): {open}(시가), {low}(저가), {high}(고가), {cprice}(종가), {vol}(거래량)")
 
             message = {
-                'action': 'current_price'
+                'action': 'current_price',
                 'code': code,
                 'name': name,
                 'low': low,

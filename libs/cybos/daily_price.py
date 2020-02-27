@@ -30,7 +30,7 @@ class DailyPrice:
                 close = client.GetDataValue(4, i)  # 종가
                 diff = client.GetDataValue(5, i)  # 종가
                 vol = client.GetDataValue(6, i)  # 종가
-                self.logger.debug(f"{asset} on {date}: {open}(시가), {low}(저가), {high}(고가), {close}(종가), {vol}(거래량)")
+                self.logger.debug(f"{asset}: {date}(날짜), {open}(시가), {low}(저가), {high}(고가), {close}(종가), {vol}(거래량)")
 
             message = {
                 'action': 'daily_price',

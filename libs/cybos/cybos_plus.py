@@ -9,7 +9,7 @@ if sys.platform == 'win32':
     import pythoncom
     windows_platform = True
 
-    from .stock_mst import StockMst
+from libs.cybos import CurrentPrice, RealtimePrice
 
 class CybosPlus:
     def __init__(self, redis, logger=None):
@@ -37,12 +37,23 @@ class CybosPlus:
         else:
             return 0
 
-    def get_price(self, assets):
+    def get_current_price(self, assets):
         for asset in assets:
-            obj = StockMst(self.redis, self.logger)
+            obj = CurrentPrice(self.redis, self.logger)
             status = obj.request(asset)
 
-    # def get_realtime_price(assets):
+    def get_realtime_price(assets):
+        for asset in assets:
+            obj = RealtimePrice(self.redis, self.logger)
+            status = obj.join(asset)
+
+    def cancel_realtime_price(assets):
+        for asset in assets:
+            obj = RealtimePrice(self.redis, self.logger)
+            status = obj.cancel(asset)
+
+
+
     #     watched = list(map(lambda x: x.asset, self.watch_list))
     #     for asset in assets:
     #         if asset not in watched:

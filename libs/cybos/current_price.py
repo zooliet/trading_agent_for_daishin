@@ -1,9 +1,11 @@
 
 import logging
-import win32com.client
-import pythoncom
+import sys
+if sys.platform == 'win32':
+    import win32com.client
+    import pythoncom
 
-class StockMst:
+class CurrentPrice:
     def __init__(self, redis, logger=None):
         self.redis = redis
         if logger:

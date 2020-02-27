@@ -28,6 +28,7 @@ class RealtimePrice:
 
 
     def OnReceived(self):
+        print("here")
         code = self.obj.GetHeaderValue(0)  # 종목코도
         name = self.obj.GetHeaderValue(1)  # 종목명
         timess = self.obj.GetHeaderValue(18)  # 초

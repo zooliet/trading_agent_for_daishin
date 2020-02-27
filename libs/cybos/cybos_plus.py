@@ -19,6 +19,8 @@ class CybosPlus:
         else:
             self.logger = logging.getLogger(__name__)
 
+        self.realtime_watched = []
+
 
     def process(self, tokens=[]):
         self.logger.info(tokens)
@@ -51,6 +53,7 @@ class CybosPlus:
         for asset in assets:
             obj = RealtimePrice(self.redis, self.logger)
             status = obj.cancel(asset)
+            self.realtime_watched.append(obj)
 
 
 

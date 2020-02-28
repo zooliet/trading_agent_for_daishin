@@ -18,7 +18,7 @@ class App:
     async def user_input(self):
         self.redis_pub = await aioredis.create_redis('redis://rekcleml.duckdns.org')
         while True:
-            msg = await aioconsole.ainput("종목 코드: ")
+            msg = await aioconsole.ainput()
             # self.logger.info(msg)
             if msg == 'quit':
                 break
@@ -38,7 +38,7 @@ class App:
         while await redis_ch.wait_message():
             msg = await redis_ch.get(encoding='utf-8')
             msg = json.loads(msg)
-            self.logger.info(msg)
+            self.logger.info(f'{msg}\n')
             if msg['action'] == 'current_price':
                 filename = f"dataset/{msg['code']}.csv"
                 async with aiofiles.open(filename, 'a+') as f:
@@ -64,8 +64,8 @@ async def main(assets, logger):
     app = App(assets, logger)
     tasks = [asyncio.create_task(app.redis_reader()), asyncio.create_task(app.user_input())]
 
-    # cron = aiocron.crontab('* * * * * */10', func=app.cron_job, start=True) # every 10 seconds
-    cron = aiocron.crontab('0 15 * * 1-5 0', func=app.cron_job, start=True) # 월-금, 15:00:00
+    cron = aiocron.crontab('*/1 * * * * 0', func=app.cron_job, start=True) # every 1 min
+    # cron = aiocron.crontab('0 15 * * 1-5 0', func=app.cron_job, start=True) # 월-금, 15:00:00
     # i = 0
     # while True:
     #     i += 1
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     from libs.utils import BooleanAction
 
     ap = argparse.ArgumentParser()
-    ap.add_argument('-a', '--assets', help='종목1, 종목2, 종목3')  # A005930, A00660, A003540
+    ap.add_argument('-a', '--assets', help='종목1, 종목2, 종목3')  # A005930, A000660, A003540
     ap.add_argument('-v', '--verbose', type=int, default=0, help='verbose level: 0*')
 
     args = vars(ap.parse_args())
@@ -98,6 +98,8 @@ if __name__ == '__main__':
         logger.setLevel(logging.DEBUG)
 
     logger.info("Started...")
+    logger.info("Type 'quit' to exit")
+    logger.info("종목을 추가하려면 AXXXXXX 형태의 종목 코드를 입력")
     if args['assets']:
         assets = [x.strip() for x in args.get('assets').split(",")]
     else:

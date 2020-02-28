@@ -1,16 +1,17 @@
 
-1. trading_agent.py 실행 방법
+1. trading_agent.py 실행 방법 (윈도우즈에서 실행)
   가. 윈도우즈에서 관리자 모드로 cmd 실행
   나. python 버전이 3.7.x 이상 인지 확인
   다. asyncio aioredis aioconsole aiofiles aiocron redis 등 패키지 설치
-  라. 적절한 디렉토리에서 git clone https://github.com/zooliet/trading_agent_for_daishin 실행
-  마. cd trading_agent_for_daishin
-  마. CybosPlus 실행
-  바. python trading_agent -v1 실행
-  사. 프로그램을 종료하려면 종료(quit) 버튼 클릭
+  라. git 설치 확인
+  마. 적절한 디렉토리에서 git clone https://github.com/zooliet/trading_agent_for_daishin 실행
+  바. cd trading_agent_for_daishin
+  사. CybosPlus 실행
+  아. python trading_agent -v1 실행
+  자. 프로그램을 종료하려면 종료(quit) 버튼 클릭
 
-2. test_server.py 실행 방법
-  가. 맥에서 terminal 실행
+2. test_server.py 실행 방법 (맥 또는 리눅스)
+  가. terminal 실행
   나. python 버전이 3.7.x 이상 인지 확인
   다. asyncio aioredis aioconsole aiofiles aiocron redis 등 패키지 설치
   라. 적절한 디렉토리에서 git clone https://github.com/zooliet/trading_agent_for_daishin 실행

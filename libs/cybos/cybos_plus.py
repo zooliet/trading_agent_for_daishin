@@ -26,7 +26,7 @@ class CybosPlus:
         self.logger.info(tokens)
 
         if not self.check_connection():
-            self.logger.warn("Cybos Plus 서버 연결 실패")
+            self.logger.warning("Cybos Plus 서버 연결 실패")
             return
 
         eval(f"self.{tokens[0]}({tokens[1:]})")

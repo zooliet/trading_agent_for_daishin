@@ -53,12 +53,9 @@ class App:
                     line = f"{date}, {open}, {high}, {low}, {current}, {volume}\n"
                     await f.write(line)
 
-
     async def cron_job(self):
         for asset in self.assets:
             await self.redis_pub.publish('rekcle:cybos', f'get_current_price:{asset}')
-
-
 
 async def main(assets, logger):
     app = App(assets, logger)

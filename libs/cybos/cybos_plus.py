@@ -9,7 +9,7 @@ if sys.platform == 'win32':
     import pythoncom
     windows_platform = True
 
-from libs.cybos import CurrentPrice, RealtimePrice, DailyPrice
+from libs.cybos import CurrentPrice, RealtimeEvent, DailyPrice, PerMinHistory
 
 class CybosPlus:
     def __init__(self, redis, logger=None):
@@ -44,15 +44,15 @@ class CybosPlus:
             client = CurrentPrice(self.redis, self.logger)
             client.request(asset)
 
-    def get_realtime_price(self, assets):
+    def join_realtime_event(self, assets):
         watched = list(map(lambda x: x.asset, self.watched))
         for asset in assets:
             if asset not in watched:
-                client = RealtimePrice(self.redis, self.logger)
+                client = RealtimeEvent(self.redis, self.logger)
                 client.join(asset)
                 self.watched.append(client)
 
-    def cancel_realtime_price(self, assets):
+    def cancel_realtime_event(self, assets):
         for asset in assets:
             clients = list(filter(lambda x: x.asset == asset, self.watched))
             if clients:
@@ -64,3 +64,9 @@ class CybosPlus:
         for asset in assets:
             client = DailyPrice(self.redis, self.logger)
             client.request(asset)
+
+    def get_per_min_history(self, assets):
+        for asset in assets:
+            client = PerMinHistory(self.redis, self.logger)
+            client.request(asset)
+

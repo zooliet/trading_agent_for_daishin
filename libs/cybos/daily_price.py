@@ -20,7 +20,6 @@ class DailyPrice:
         client.BlockRequest()
 
         if client.GetDibStatus() == 0:  # ready to send
-            self.logger.info(client.GetDibMsg1())
             count = client.GetHeaderValue(1)  # 데이터 개수
             for i in range(1): # latest
                 date = client.GetDataValue(0, i)  # 일자
@@ -44,3 +43,7 @@ class DailyPrice:
             }
             message = json.dumps(message)
             self.redis.publish('rekcle:cybos:response', message)
+        else:
+            status_message = client.GetDibMsg1()
+            self.logger.info(f'통신오류: {status_message}')
+

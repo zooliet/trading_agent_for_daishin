@@ -11,21 +11,21 @@ from tkinter import messagebox, filedialog, ttk
 from libs.cybos import CybosPlus
 
 class App(tk.Tk):
-    def __init__(self, loop, logger=None, interval=1/120):
+    def __init__(self, loop, args, logger=None, interval=1/120):
         super().__init__()
-
         if logger:
             self.logger = logger
         else:
             self.logger = logging.getLogger(__name__)
 
+        self.redis_address = args.get('redis', '127.0.0.1')
         self.loop = loop # asyncio loop
         self.tasks = []
         self.tasks.append(loop.create_task(self.updater(interval)))
         self.tasks.append(loop.create_task(self.redis_reader()))
         self.init_ui()
 
-        self.redis = Redis(host='rekcleml.duckdns.org') # sync version
+        self.redis = Redis(host=self.redis_address) # sync version
         self.cybos = CybosPlus(self.redis, self.logger)
 
     def init_ui(self):
@@ -65,7 +65,7 @@ class App(tk.Tk):
             await asyncio.sleep(interval)
 
     async def redis_reader(self):
-        redis = await aioredis.create_redis('redis://rekcleml.duckdns.org')
+        redis = await aioredis.create_redis(f'redis://{self.redis_address}')
         (redis_ch, ) = await redis.subscribe('rekcle:cybos')
         while await redis_ch.wait_message():
             msg = await redis_ch.get(encoding='utf-8')
@@ -100,6 +100,7 @@ if __name__ == '__main__':
     from libs.utils import BooleanAction
 
     ap = argparse.ArgumentParser()
+    ap.add_argument('-r', '--redis', default='127.0.0.1', help='redis server address') # rekcleml.duckdns.org
     ap.add_argument('--debug', '--no-debug', dest='debug', default=False, action=BooleanAction, help='디버거 사용 유무')
     ap.add_argument('-v', '--verbose', type=int, default=0, help='verbose level: 0*')
 
@@ -113,7 +114,7 @@ if __name__ == '__main__':
         code.interact(local=locals())
 
     loop = asyncio.get_event_loop()
-    app = App(loop, logger=logger)
+    app = App(loop, args, logger=logger)
     # app.mainloop()
     # 주1. gui loop와 asyncio loop를 같이 사용할 수 없기 때문에 gui loop는 수동으로 실행
     # 주2. https://stackoverflow.com/questions/47895765/use-asyncio-and-tkinter-or-another-gui-lib-together-without-freezing-the-gui

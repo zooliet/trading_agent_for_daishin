@@ -20,7 +20,6 @@ class CurrentPrice:
         client.BlockRequest()
 
         if client.GetDibStatus() == 0:  # ready to send
-            self.logger.info(client.GetDibMsg1())
             code = client.GetHeaderValue(0)  #종목코드
             name= client.GetHeaderValue(1)  # 종목명
             time= client.GetHeaderValue(4)  # 시간
@@ -47,3 +46,6 @@ class CurrentPrice:
             }
             message = json.dumps(message)
             self.redis.publish('rekcle:cybos:response', message)
+        else:
+            status_message = client.GetDibMsg1()
+            self.logger.info(f'통신오류: {status_message}')

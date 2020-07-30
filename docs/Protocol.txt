@@ -1,0 +1,39 @@
+
+
+# Current price 조회 (polling)
+1. 렉클 서버 -> Agent
+	PUBLISH rekcle:cybos get_current_price:A0005930:A000600
+2. Agent -> 대신 서버 --(blocking)--> Agent
+	DSCbo1.StockMst
+3. Agent -> 렉클 서버
+	PUBLISH rekcle:cybos:response {action:daily_price, code:asset, ... }
+
+# Realtime event (가입)
+1. 렉클 서버 -> Agent
+	PUBLISH rekcle:cybos join_realtime_event:A0005930:A000600
+2. Agent -> 대신 서버 -->(non-blocking) --> agent
+	DSCbo1.StockCur
+3. Agent -> 렉클 서버
+	PUBLISH rekcle:cybos:response {action:realtime_event, code:asset, ... }
+
+# Realtime event (해지)
+1. 렉클 서버 -> Agent
+	PUBLISH rekcle:cybos cancel_realtime_event:A0005930:A000600
+2. Agent -> 대신 서버 -->(blocking) --> agent
+	???
+3. Agent -> 렉클 서버
+	Nothing
+
+# Daily_price (전일 종가 조회)
+1. 렉클 서버 -> Agent
+	PUBLISH rekcle:cybos get_daily_price:A0005930:A000600
+2. Agent -> 대신 서버 -->(blocking) --> agent
+	DSCbo1.StockWeek
+3. Agent -> 렉클 서버
+	PUBLISH rekcle:cybos:response {action:daily_price, code:asset, ... }
+
+# 
+
+
+	
+

@@ -14,7 +14,7 @@ class EventHandler:
         self.caller.on_received()
 
 
-class RealtimePrice:
+class RealtimeEvent:
     def __init__(self, redis, logger=None):
         self.redis = redis
         if logger:
@@ -31,6 +31,8 @@ class RealtimePrice:
         handler.set_params(self)
         self.client.Subscribe()
 
+    def cancel(self, asset):
+        self.client.Unsubscribe()
 
     def on_received(self):
         code = self.client.GetHeaderValue(0)  # 종목코도
@@ -44,7 +46,7 @@ class RealtimePrice:
         self.logger.debug(f"{name}({code}): {cprice}")
 
         message = {
-            'action': 'realtime_price',
+            'action': 'realtime_event',
             'code': code,
             'name': name,
             'current': cprice,
@@ -53,5 +55,3 @@ class RealtimePrice:
         message = json.dumps(message)
         self.redis.publish('rekcle:cybos:response', message)
 
-    def cancel(self, asset):
-        self.client.Unsubscribe()

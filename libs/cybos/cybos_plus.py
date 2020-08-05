@@ -28,7 +28,7 @@ class CybosPlus:
             self.logger.warning("Cybos Plus 서버 연결 실패")
             return
 
-        await eval(f"{self.params['action']}({params})")
+        await eval(f"self.{params['action']}({params})")
 
     def check_connection(self):
         if windows_platform:

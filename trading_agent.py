@@ -22,10 +22,9 @@ class App(tk.Tk):
         self.loop = loop # asyncio loop
         self.tasks = []
 
-        loop.create_task(self.create_mqtt_for_pub())
+        loop.create_task(self.create_cybos_with_mqtt())
         self.tasks.append(loop.create_task(self.updater(interval)))
         self.tasks.append(loop.create_task(self.mqtt_reader()))
-        self.cybos = CybosPlus(self.mqtt, self.logger)
 
         self.init_ui()
 
@@ -64,9 +63,10 @@ class App(tk.Tk):
             self.update()
             await asyncio.sleep(interval)
 
-    async def create_mqtt_for_pub(self):
+    async def create_cybos_with_mqtt(self):
         self.mqtt = MQTTClient()
         await self.mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
+        self.cybos = CybosPlus(self.mqtt, self.logger)
 
     async def mqtt_reader(self):
         client = MQTTClient()

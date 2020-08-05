@@ -139,6 +139,3 @@ if __name__ == '__main__':
     logger.info("종목을 추가하려면 AXXXXXX 형태의 종목 코드를 입력")
 
     asyncio.run(main(args, logger))
-
-
-

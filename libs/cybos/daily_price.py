@@ -7,12 +7,13 @@ if sys.platform == 'win32':
     import pythoncom
 
 class DailyPrice:
-    def __init__(self, redis, logger=None):
-        self.redis = redis
+    def __init__(self, mqtt, logger=None):
         if logger:
             self.logger = logger
         else:
             self.logger = logging.getLogger(__name__)
+
+        self.mqtt = mqtt
 
     def request(self, asset):
         client = win32com.client.Dispatch("DsCbo1.StockWeek")
@@ -41,8 +42,8 @@ class DailyPrice:
                 'close': close,
                 'volume': vol
             }
-            message = json.dumps(message)
-            self.redis.publish('rekcle:cybos:response', message)
+            message = bytearray(json.dumps(message), 'utf-8')
+            await self.mqtt.publish('rekcle/cybos/response', message, qos=0x00)
         else:
             status_message = client.GetDibMsg1()
             self.logger.info(f'통신오류: {status_message}')

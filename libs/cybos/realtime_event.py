@@ -15,12 +15,13 @@ class EventHandler:
 
 
 class RealtimeEvent:
-    def __init__(self, redis, logger=None):
-        self.redis = redis
+    def __init__(self, mqtt, logger=None):
         if logger:
             self.logger = logger
         else:
             self.logger = logging.getLogger(__name__)
+
+        self.mqtt = mqtt
 
     def join(self, asset):
         self.asset = asset
@@ -52,6 +53,6 @@ class RealtimeEvent:
             'current': cprice,
             'volume': vol
         }
-        message = json.dumps(message)
-        self.redis.publish('rekcle:cybos:response', message)
+        message = bytearray(json.dumps(message), 'utf-8')
+        await self.mqtt.publish('rekcle/cybos/response', message, qos=0x00)
 

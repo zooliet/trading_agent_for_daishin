@@ -10,12 +10,13 @@ if sys.platform == 'win32':
 from datetime import datetime
 
 class PerMinHistory:
-    def __init__(self, redis, logger=None):
-        self.redis = redis
+    def __init__(self, mqtt, logger=None):
         if logger:
             self.logger = logger
         else:
             self.logger = logging.getLogger(__name__)
+            
+        self.mqtt = mqtt
 
     def request(self, asset):
         num_requested = 100 # upto 200000
@@ -46,10 +47,12 @@ class PerMinHistory:
                     close=client.GetDataValue(5, i)
                     vol=client.GetDataValue(6, i)
                     self.logger.debug(f"[{received_total}/{num_requested}] {date} {time}: {open}(o), {close}(c), {vol}(v)")
-                    date_time = datetime.strptime(f'{date} {time:04d}', '%Y%m%d %H%M')
+                    # date_time = datetime.strptime(f'{date} {time:04d}', '%Y%m%d %H%M')
+                    date_time = f'{date} {time:04d}'
                     message[date_time] = { 'code': asset, 'close': close, 'volume': vol }
 
-                self.redis.publish('rekcle:cybos:response', json.dumps(message))
+                message = bytearray(json.dumps(message), 'utf-8')
+                # await self.mqtt.publish('rekcle/cybos/response', message, qos=0x00)
             else:
                 status_message = client.GetDibMsg1()
                 self.logger.info(f'통신오류: {status_message}')

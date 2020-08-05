@@ -18,7 +18,8 @@ import rlcompleter
 pdb.Pdb.complete=rlcompleter.Completer(locals()).complete
 
 import asyncio
-import aioredis
+from hbmqtt.client import MQTTClient, ConnectException
+from hbmqtt.mqtt.constants import QOS_1, QOS_2
 import aioconsole
 import aiofiles
 import aiocron
@@ -29,13 +30,17 @@ import re
 class App:
     def __init__(self, args, logger):
         self.logger = logger
+
         if args['assets']:
             self.assets = [x.strip() for x in args.get('assets').split(",")]
         else:
             self.assets = []
 
-        self.redis_address = args.get('redis', '127.0.0.1')
-        self.redis_pub = None
+        self.mqtt_broker_address = args.get('mqtt', '127.0.0.1')
+
+    async def async_init(self):
+        self.mqtt = MQTTClient()
+        await self.mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
 
     async def user_input(self):
         while True:
@@ -52,26 +57,31 @@ class App:
             else:
                 pass
 
-    async def redis_reader(self):
-        redis = await aioredis.create_redis(f'redis://{self.redis_address}')
-        (redis_ch, ) = await redis.subscribe('rekcle:cybos:response')
-        while await redis_ch.wait_message():
-            msg = await redis_ch.get(encoding='utf-8')
-            msg = json.loads(msg)
-            if msg['action'] == 'per_min_history':
-                self.logger.debug(f'{msg}\n')
+    async def mqtt_reader(self):
+        mqtt = MQTTClient()
+        await mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
+        await mqtt.subscribe([('rekcle/cybos/response', QOS_1)])
+
+        while True:
+            msg = await mqtt.deliver_message()
+            packet = msg.publish_packet
+            payload = packet.payload.data.decode('utf-8')
+            payload = json.loads(payload)
+            self.logger.debug(f'{payload}\n')
+            if payload['action'] == 'per_min_history':
                 # pass # do something here
 
     async def request_for_download(self, assets=[]):
-        if not self.redis_pub:
-            self.redis_pub = await aioredis.create_redis(f'redis://{self.redis_address}')
         if assets:
-            assets = ":".join(assets)
-            await self.redis_pub.publish('rekcle:cybos', f'get_per_min_history:{assets}')
+            msg = {'action': 'get_per_min_history', 'assets': assets}
+            msg = json.dumps(msg)
+            msg = bytearray(msg, 'utf-8')
+            await self.mqtt.publish('rekcle/cybos', msg, qos=QOS_1)
 
 
 async def main(args, logger):
     app = App(args, logger)
+    await app.async_init()
     tasks = [
         asyncio.create_task(app.redis_reader()), asyncio.create_task(app.user_input())
     ]
@@ -98,7 +108,7 @@ if __name__ == '__main__':
     from libs.utils import BooleanAction
     ap = argparse.ArgumentParser()
     ap.add_argument('-a', '--assets', help='종목1, 종목2, 종목3')  # A005930, A000660, A003540
-    ap.add_argument('-r', '--redis', default='127.0.0.1', help='redis server address') # rekcleml.duckdns.org
+    ap.add_argument('-m', '--mqtt', default='127.0.0.1', help='mqtt broker address') # rekcleml.duckdns.org
     ap.add_argument('-v', '--verbose', type=int, default=0, help='verbose level: 0*')
     ap.add_argument('--debug', '--no-debug', dest='debug', default=False, action=BooleanAction, help='whether or not to print debug message: T*')
 
@@ -115,8 +125,3 @@ if __name__ == '__main__':
     logger.info("종목을 추가하려면 AXXXXXX 형태의 종목 코드를 입력")
 
     asyncio.run(main(args, logger))
-
-
-
-
-

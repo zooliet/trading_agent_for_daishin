@@ -23,15 +23,14 @@ class App(tk.Tk):
         self.mqtt_broker_address = args.get('mqtt', '127.0.0.1')
         self.loop = loop # asyncio loop
         self.tasks = []
-        self.init_ui()
 
-    async def async_init(self):
+        loop.create_task(self.create_mqtt_for_pub())
+
         self.tasks.append(loop.create_task(self.updater(interval)))
         self.tasks.append(loop.create_task(self.mqtt_reader()))
 
-        self.mqtt = MQTTClient()
-        await self.mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
         self.cybos = CybosPlus(self.mqtt, self.logger)
+        self.init_ui()
 
     def init_ui(self):
         screen_width = self.winfo_screenwidth()
@@ -63,11 +62,14 @@ class App(tk.Tk):
     #     msg = bytearray(msg, 'utf-8')
     #     await self.mqtt.publish('rekcle/cybos', msg, qos=QOS_1)
         
-
     async def updater(self, interval):
         while True:
             self.update()
             await asyncio.sleep(interval)
+
+    async def create_mqtt_for_pub(self):
+        self.mqtt = MQTTClient()
+        await self.mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
 
     async def mqtt_reader(self):
         client = MQTTClient()
@@ -130,7 +132,6 @@ if __name__ == '__main__':
 
     loop = asyncio.get_event_loop()
     app = App(loop, args, logger=logger)
-    await app.async_init()
     # app.mainloop()
     # 주1. gui loop와 asyncio loop를 같이 사용할 수 없기 때문에 gui loop는 수동으로 실행
     # 주2. https://stackoverflow.com/questions/47895765/use-asyncio-and-tkinter-or-another-gui-lib-together-without-freezing-the-gui

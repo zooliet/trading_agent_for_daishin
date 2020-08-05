@@ -12,24 +12,23 @@ if sys.platform == 'win32':
 from libs.cybos import CurrentPrice, RealtimeEvent, DailyPrice, PerMinHistory
 
 class CybosPlus:
-    def __init__(self, redis, logger=None):
-        self.redis = redis
+    def __init__(self, mqtt, logger=None):
         if logger:
             self.logger = logger
         else:
             self.logger = logging.getLogger(__name__)
 
+        self.mqtt = mqtt
         self.watched = []
 
-
-    def process(self, tokens=[]):
-        self.logger.info(tokens)
+    async def process(self, params={})
+        self.logger.info(params)
 
         if not self.check_connection():
             self.logger.warning("Cybos Plus 서버 연결 실패")
             return
 
-        eval(f"self.{tokens[0]}({tokens[1:]})")
+        await eval(f"self.{params{'action'}({params})")
 
     def check_connection(self):
         if windows_platform:
@@ -39,34 +38,34 @@ class CybosPlus:
         else:
             return 0
 
-    def get_current_price(self, assets):
-        for asset in assets:
-            client = CurrentPrice(self.redis, self.logger)
-            client.request(asset)
+    async def get_current_price(self, params={}):
+        for asset in params['assets']:
+            client = CurrentPrice(self.mqtt, self.logger)
+            await client.request(asset)
 
-    def join_realtime_event(self, assets):
+    def join_realtime_event(self, params={}):
         watched = list(map(lambda x: x.asset, self.watched))
-        for asset in assets:
+        for asset in paramsi['assets']:
             if asset not in watched:
-                client = RealtimeEvent(self.redis, self.logger)
+                client = RealtimeEvent(self.mqtt, self.logger)
                 client.join(asset)
                 self.watched.append(client)
 
-    def cancel_realtime_event(self, assets):
-        for asset in assets:
+    def cancel_realtime_event(self, params={}):
+        for asset in params['assets']:
             clients = list(filter(lambda x: x.asset == asset, self.watched))
             if clients:
                 client = clients[0]
                 client.cancel(asset)
                 self.watched.remove(client)
 
-    def get_daily_price(self, assets):
-        for asset in assets:
-            client = DailyPrice(self.redis, self.logger)
+    def get_daily_price(self, params={}):
+        for asset in params['assets']:
+            client = DailyPrice(self.mqtt, self.logger)
             client.request(asset)
 
-    def get_per_min_history(self, assets):
-        for asset in assets:
-            client = PerMinHistory(self.redis, self.logger)
+    def get_per_min_history(self, params={}):
+        for asset in params['assets']:
+            client = PerMinHistory(self.mqtt, self.logger)
             client.request(asset)
 

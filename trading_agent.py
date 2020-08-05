@@ -2,8 +2,10 @@
 
 
 import asyncio
-import aioredis
-from redis import Redis
+# import paho.mqtt.publish as publish
+# import paho.mqtt.client as paho
+from hbmqtt.client import MQTTClient, ConnectException
+from hbmqtt.mqtt.constants import QOS_1, QOS_2
 
 import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
@@ -18,15 +20,18 @@ class App(tk.Tk):
         else:
             self.logger = logging.getLogger(__name__)
 
-        self.redis_address = args.get('redis', '127.0.0.1')
+        self.mqtt_broker_address = args.get('mqtt', '127.0.0.1')
         self.loop = loop # asyncio loop
         self.tasks = []
-        self.tasks.append(loop.create_task(self.updater(interval)))
-        self.tasks.append(loop.create_task(self.redis_reader()))
         self.init_ui()
 
-        self.redis = Redis(host=self.redis_address) # sync version
-        self.cybos = CybosPlus(self.redis, self.logger)
+    async def async_init(self):
+        self.tasks.append(loop.create_task(self.updater(interval)))
+        self.tasks.append(loop.create_task(self.mqtt_reader()))
+
+        self.mqtt = MQTTClient()
+        await self.mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
+        self.cybos = CybosPlus(self.mqtt, self.logger)
 
     def init_ui(self):
         screen_width = self.winfo_screenwidth()
@@ -52,30 +57,40 @@ class App(tk.Tk):
         self.loop.stop()
         # self.destroy()
 
-    def test(self):
-        msg = "test:code"
-        # msg = {'cmd': 'test', 'code': 'code'}
-        # msg = json.dumps(msg)
-        self.redis.publish('rekcle:cybos', msg)
-        # self.tasks.append(self.loop.create_task(self.foo()))
+    # def test(self):
+    #     msg = {'action': 'test:action', 'params': 'hello mqtt'}
+    #     msg = json.dumps(msg)
+    #     msg = bytearray(msg, 'utf-8')
+    #     await self.mqtt.publish('rekcle/cybos', msg, qos=QOS_1)
+        
 
     async def updater(self, interval):
         while True:
             self.update()
             await asyncio.sleep(interval)
 
-    async def redis_reader(self):
-        redis = await aioredis.create_redis(f'redis://{self.redis_address}')
-        (redis_ch, ) = await redis.subscribe('rekcle:cybos')
-        while await redis_ch.wait_message():
-            msg = await redis_ch.get(encoding='utf-8')
-            # self.logger.info(msg)
-            # msg = json.loads(msg)
-            tokens = [x.strip() for x in msg.split(":")]
-            if tokens[0] == 'quit':
-                self.close()
+    async def mqtt_reader(self):
+        client = MQTTClient()
+        await client.connect(f'mqtt://{self.mqtt_broker_address}')
+        await client.subscribe([('rekcle/cybos', QOS_1)])
+
+        while True:
+            msg = await client.deliver_message()
+            packet = msg.publish_packet
+            payload = packet.payload.data.decode('utf-8')
+            payload = json.loads(payload)
+            # tokens = [x.stripe() for x in packet.payload.data.decode('utf-8').split(":")]
+            # if tokens[0] == 'quit':
+            #     pass
+            
+            if payload['action'] == 'quit':
+                await client.disconnect() # close the sub channel
+                await self.mqtt.disconnect() # close the pub channel
+                break
             else:
-                self.cybos.process(tokens)
+                await self.cybos.process(payload)
+
+        self.close()
 
 if __name__ == '__main__':
     # debugger 셋팅
@@ -100,7 +115,7 @@ if __name__ == '__main__':
     from libs.utils import BooleanAction
 
     ap = argparse.ArgumentParser()
-    ap.add_argument('-r', '--redis', default='127.0.0.1', help='redis server address') # rekcleml.duckdns.org
+    ap.add_argument('-m', '--mqtt', default='127.0.0.1', help='mqtt broker address') # rekcleml.duckdns.org
     ap.add_argument('--debug', '--no-debug', dest='debug', default=False, action=BooleanAction, help='디버거 사용 유무')
     ap.add_argument('-v', '--verbose', type=int, default=0, help='verbose level: 0*')
 
@@ -115,6 +130,7 @@ if __name__ == '__main__':
 
     loop = asyncio.get_event_loop()
     app = App(loop, args, logger=logger)
+    await app.async_init()
     # app.mainloop()
     # 주1. gui loop와 asyncio loop를 같이 사용할 수 없기 때문에 gui loop는 수동으로 실행
     # 주2. https://stackoverflow.com/questions/47895765/use-asyncio-and-tkinter-or-another-gui-lib-together-without-freezing-the-gui

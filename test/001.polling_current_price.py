@@ -18,7 +18,8 @@ import rlcompleter
 pdb.Pdb.complete=rlcompleter.Completer(locals()).complete
 
 import asyncio
-import aioredis
+from hbmqtt.client import MQTTClient, ConnectException
+from hbmqtt.mqtt.constants import QOS_1, QOS_2
 import aioconsole
 import aiofiles
 import aiocron
@@ -29,12 +30,17 @@ import re
 class App:
     def __init__(self, args, logger):
         self.logger = logger
+
         if args['assets']:
             self.assets = [x.strip() for x in args.get('assets').split(",")]
         else:
             self.assets = []
 
-        self.redis_server = args.get('redis', '127.0.0.1')
+        self.mqtt_broker_address = args.get('mqtt', '127.0.0.1')
+
+    async def async_init(self):
+        self.mqtt = MQTTClient()
+        await self.mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
 
     async def user_input(self):
         while True:
@@ -46,46 +52,46 @@ class App:
                 if msg not in self.assets:
                     self.assets.append(msg)
                     self.logger.info(self.assets)
-
-                # for testing
-                # await self.redis_pub.publish('rekcle:cybos', f'get_current_price:{msg}')
             else:
                 pass
 
-    async def redis_reader(self):
-        self.redis_pub = await aioredis.create_redis(f'redis://{self.redis_server}')
+    async def mqtt_reader(self):
+        mqtt = MQTTClient()
+        await mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
+        await mqtt.subscribe([('rekcle/cybos/response', QOS_1)])
 
-        redis = await aioredis.create_redis(f'redis://{self.redis_server}')
-        (redis_ch, ) = await redis.subscribe('rekcle:cybos:response')
-        while await redis_ch.wait_message():
-            msg = await redis_ch.get(encoding='utf-8')
-            msg = json.loads(msg)
-            self.logger.debug(f'{msg}\n')
-            if msg['action'] == 'current_price':
-                filename = f"dataset/{msg['code']}.csv"
+        while True:
+            msg = await mqtt.deliver_message()
+            packet = msg.publish_packet
+            payload = packet.payload.data.decode('utf-8')
+            payload = json.loads(payload)
+            self.logger.debug(f'{payload}\n')
+            if payload['action'] == 'current_price':
+                filename = f"dataset/{payload['code']}.csv"
                 async with aiofiles.open(filename, 'a+') as f:
                     date = datetime.date.today().strftime("%Y-%m-%d")
                     # date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                    low = msg['low']
-                    high = msg['high']
-                    open = msg['open']
-                    current = msg['current']
-                    volume = msg['volume']
+                    low = payload['low']
+                    high = payload['high']
+                    open = payload['open']
+                    current = payload['current']
+                    volume = payload['volume']
 
                     line = f"{date}, {open}, {high}, {low}, {current}, {volume}\n"
                     await f.write(line)
 
     async def cron_job(self):
         if self.assets:
-            assets = ":".join(self.assets)
-            await self.redis_pub.publish('rekcle:cybos', f'get_current_price:{assets}')
-        # for asset in self.assets:
-        #     await self.redis_pub.publish('rekcle:cybos', f'get_current_price:{asset}')
+            msg = {'action': 'get_current_price', 'assets': self.assets}
+            msg = json.dumps(msg)
+            msg = bytearray(msg, 'utf-8')
+            await self.mqtt.publish('rekcle:cybos', msg, qos=QOS_1)
 
 async def main(args, logger):
     app = App(args, logger)
+    app.async_init()
     tasks = [
-        asyncio.create_task(app.redis_reader()), asyncio.create_task(app.user_input())
+        asyncio.create_task(app.mqtt_reader()), asyncio.create_task(app.user_input())
     ]
 
     cron = aiocron.crontab('*/1 * * * * 0', func=app.cron_job, start=True) # every 1 min
@@ -116,7 +122,7 @@ if __name__ == '__main__':
     from libs.utils import BooleanAction
     ap = argparse.ArgumentParser()
     ap.add_argument('-a', '--assets', help='종목1, 종목2, 종목3')  # A005930, A006660, A003540
-    ap.add_argument('-r', '--redis', default='127.0.0.1', help='redis server address') # rekcleml.duckdns.org
+    ap.add_argument('-m', '--mqtt', default='127.0.0.1', help='mqtt broker address') # rekcleml.duckdns.org
     ap.add_argument('-v', '--verbose', type=int, default=0, help='verbose level: 0*')
     ap.add_argument('--debug', '--no-debug', dest='debug', default=False, action=BooleanAction, help='whether or not to print debug message: T*')
 

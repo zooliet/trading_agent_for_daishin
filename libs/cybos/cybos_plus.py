@@ -21,7 +21,7 @@ class CybosPlus:
         self.mqtt = mqtt
         self.watched = []
 
-    async def process(self, params={})
+    async def process(self, params={}):
         self.logger.info(params)
 
         if not self.check_connection():

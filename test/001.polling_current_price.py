@@ -85,11 +85,11 @@ class App:
             msg = {'action': 'get_current_price', 'assets': self.assets}
             msg = json.dumps(msg)
             msg = bytearray(msg, 'utf-8')
-            await self.mqtt.publish('rekcle:cybos', msg, qos=QOS_1)
+            await self.mqtt.publish('rekcle/cybos', msg, qos=QOS_1)
 
 async def main(args, logger):
     app = App(args, logger)
-    app.async_init()
+    await app.async_init()
     tasks = [
         asyncio.create_task(app.mqtt_reader()), asyncio.create_task(app.user_input())
     ]

@@ -2,8 +2,6 @@
 
 
 import asyncio
-# import paho.mqtt.publish as publish
-# import paho.mqtt.client as paho
 from hbmqtt.client import MQTTClient, ConnectException
 from hbmqtt.mqtt.constants import QOS_1, QOS_2
 
@@ -25,11 +23,10 @@ class App(tk.Tk):
         self.tasks = []
 
         loop.create_task(self.create_mqtt_for_pub())
-
         self.tasks.append(loop.create_task(self.updater(interval)))
         self.tasks.append(loop.create_task(self.mqtt_reader()))
+        self.cybos = CybosPlus(self.mqtt, self.logger)
 
-        # self.cybos = CybosPlus(self.mqtt, self.logger)
         self.init_ui()
 
     def init_ui(self):
@@ -70,7 +67,6 @@ class App(tk.Tk):
     async def create_mqtt_for_pub(self):
         self.mqtt = MQTTClient()
         await self.mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
-        self.cybos = CybosPlus(self.mqtt, self.logger)
 
     async def mqtt_reader(self):
         client = MQTTClient()
@@ -82,9 +78,6 @@ class App(tk.Tk):
             packet = msg.publish_packet
             payload = packet.payload.data.decode('utf-8')
             payload = json.loads(payload)
-            # tokens = [x.stripe() for x in packet.payload.data.decode('utf-8').split(":")]
-            # if tokens[0] == 'quit':
-            #     pass
             
             if payload['action'] == 'quit':
                 await client.disconnect() # close the sub channel

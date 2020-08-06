@@ -18,7 +18,7 @@ class PerMinHistory:
             
         self.mqtt = mqtt
 
-    def request(self, asset):
+    async def request(self, asset):
         num_requested = 100 # upto 200000
         client = win32com.client.Dispatch("CpSysDib.StockChart")
         client.SetInputValue(0, asset)

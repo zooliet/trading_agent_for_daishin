@@ -45,7 +45,7 @@ class CybosPlus:
 
     async def join_realtime_event(self, params={}):
         watched = list(map(lambda x: x.asset, self.watched))
-        for asset in paramsi['assets']:
+        for asset in params['assets']:
             if asset not in watched:
                 client = RealtimeEvent(self.mqtt, self.logger)
                 client.join(asset)
@@ -62,10 +62,10 @@ class CybosPlus:
     async def get_daily_price(self, params={}):
         for asset in params['assets']:
             client = DailyPrice(self.mqtt, self.logger)
-            client.request(asset)
+            await client.request(asset)
 
     async def get_per_min_history(self, params={}):
         for asset in params['assets']:
             client = PerMinHistory(self.mqtt, self.logger)
-            client.request(asset)
+            await client.request(asset)
 

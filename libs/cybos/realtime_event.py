@@ -6,6 +6,8 @@ if sys.platform == 'win32':
     import win32com.client
     import pythoncom
 
+import asyncio
+
 class EventHandler:
     def set_params(self, caller):
         self.caller = caller
@@ -44,7 +46,7 @@ class RealtimeEvent:
         diff = self.client.GetHeaderValue(2)  # 대비
         cVol = self.client.GetHeaderValue(17)  # 순간체결수량
         vol = self.client.GetHeaderValue(9)  # 거래량
-        self.logger.debug(f"{name}({code}): {cprice}")
+        self.logger.debug(f"{name}({code}): {cprice} {vol}")
 
         message = {
             'action': 'realtime_event',
@@ -54,5 +56,7 @@ class RealtimeEvent:
             'volume': vol
         }
         message = bytearray(json.dumps(message), 'utf-8')
-        await self.mqtt.publish('rekcle/cybos/response', message, qos=0x00)
+        t = [asyncio.create_task(self.mqtt_pub(message))]
 
+    async def mqtt_pub(self, message):
+        await self.mqtt.publish('rekcle/cybos/response', message, qos=0x00)

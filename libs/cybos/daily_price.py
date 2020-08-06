@@ -15,7 +15,7 @@ class DailyPrice:
 
         self.mqtt = mqtt
 
-    def request(self, asset):
+    async def request(self, asset):
         client = win32com.client.Dispatch("DsCbo1.StockWeek")
         client.SetInputValue(0, asset)
         client.BlockRequest()

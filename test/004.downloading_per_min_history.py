@@ -69,8 +69,8 @@ class App:
             payload = json.loads(payload)
             self.logger.debug(f'{payload}\n')
             if payload['action'] == 'per_min_history':
-                # pass # do something here
-
+                pass # do something here
+   
     async def request_for_download(self, assets=[]):
         if assets:
             msg = {'action': 'get_per_min_history', 'assets': assets}
@@ -83,7 +83,7 @@ async def main(args, logger):
     app = App(args, logger)
     await app.async_init()
     tasks = [
-        asyncio.create_task(app.redis_reader()), asyncio.create_task(app.user_input())
+        asyncio.create_task(app.mqtt_reader()), asyncio.create_task(app.user_input())
     ]
     await app.request_for_download(app.assets)
 

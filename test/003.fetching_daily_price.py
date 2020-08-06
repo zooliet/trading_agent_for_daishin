@@ -83,7 +83,7 @@ async def main(args, logger):
     app = App(args, logger)
     await app.async_init()
     tasks = [
-        asyncio.create_task(app.redis_reader()), asyncio.create_task(app.user_input())
+        asyncio.create_task(app.mqtt_reader()), asyncio.create_task(app.user_input())
     ]
 
     await app.request_for_fetching(app.assets)

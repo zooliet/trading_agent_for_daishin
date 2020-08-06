@@ -39,6 +39,7 @@ class App:
 
     async def async_init(self):
         self.mqtt = MQTTClient()
+        await self.mqtt.connect(f'mqtt://{self.mqtt_broker_address}')
 
     async def user_input(self):
         while True:
@@ -47,6 +48,8 @@ class App:
             if msg == 'quit':
                 await self.request_for_cancel(self.assets)
                 break
+            elif msg == 'cancel':
+                await self.request_for_cancel(self.assets)
             elif re.match("^A[\d]{6}$", msg):
                 if msg not in self.assets:
                     self.assets.append(msg)
@@ -69,17 +72,17 @@ class App:
             payload = json.loads(payload)
             self.logger.debug(f'{payload}\n')
             if payload['action'] == 'realtime_event':
-                filename = f"dataset/{msg['code']}_min.csv"
+                filename = f"dataset/{payload['code']}_min.csv"
                 async with aiofiles.open(filename, 'a+') as f:
                     date = datetime.date.today().strftime("%Y-%m-%d")
                     # date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                    # low = msg['low']
-                    # high = msg['high']
-                    # open = msg['open']
-                    close = msg['close']
-                    volume = msg['volume']
+                    # low = payload['low']
+                    # high = payload['high']
+                    # open = payload['open']
+                    current = payload['current']
+                    volume = payload['volume']
 
-                    line = f"{date}, {close}, {volume}\n"
+                    line = f"{date}, {current}, {volume}\n"
                     await f.write(line)
 
     async def request_for_join(self, assets=[]):
@@ -95,12 +98,13 @@ class App:
             msg = json.dumps(msg)
             msg = bytearray(msg, 'utf-8')
             await self.mqtt.publish('rekcle/cybos', msg, qos=QOS_1)
+            self.assets = []
 
 async def main(args, logger):
     app = App(args, logger)
     await app.async_init()
     tasks = [
-        asyncio.create_task(app.redis_reader()), asyncio.create_task(app.user_input())
+        asyncio.create_task(app.mqtt_reader()), asyncio.create_task(app.user_input())
     ]
     await app.request_for_join(app.assets)
 

@@ -1,4 +1,3 @@
-
 {
   "version": 1,
   "formatters": {
@@ -30,7 +29,7 @@
 
   "loggers": {
     "rekcle": {
-      "level": "INFO",
+      "level": "DEBUG",
       "handlers": ["console", "file_handler"],
       "propagate": 0
     }

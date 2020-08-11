@@ -33,9 +33,7 @@ class PerMinHistory:
         while received_total < num_requested: 
             client.BlockRequest()
             if client.GetDibStatus() == 0:  # ready to send
-                message = {
-                    'action': 'per_min_history'
-                }
+                message = {'action': 'per_min_history'}
                 count = client.GetHeaderValue(3)  # 수신 개수
                 # code = client.GetHeaderValue(0)  #종목코드
                 # name= client.GetHeaderValue(1)  # 종목명
@@ -49,10 +47,11 @@ class PerMinHistory:
                     self.logger.debug(f"[{received_total}/{num_requested}] {date} {time}: {open}(o), {close}(c), {vol}(v)")
                     # date_time = datetime.strptime(f'{date} {time:04d}', '%Y%m%d %H%M')
                     date_time = f'{date} {time:04d}'
-                    message[date_time] = { 'code': asset, 'close': close, 'volume': vol }
+                    message[date_time] = { 'code': asset, 'datetime': date_time, 'close': close, 'volume': vol }
 
+                self.logger.debug(f"[{received_total}/{num_requested}]")
                 message = bytearray(json.dumps(message), 'utf-8')
-                # await self.mqtt.publish('rekcle/cybos/response', message, qos=0x00)
+                await self.mqtt.publish('rekcle/cybos/response', message, qos=0x00)
             else:
                 status_message = client.GetDibMsg1()
                 self.logger.info(f'통신오류: {status_message}')

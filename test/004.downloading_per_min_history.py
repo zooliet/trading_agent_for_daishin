@@ -7,16 +7,6 @@ sys.path.insert(0, '.')
 sys.path.insert(0, '..')
 # print(sys.path)
 
-# logger 셋팅
-import logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
-
-# debugger 셋팅
-import pdb
-import rlcompleter
-pdb.Pdb.complete=rlcompleter.Completer(locals()).complete
-
 import asyncio
 from hbmqtt.client import MQTTClient, ConnectException
 from hbmqtt.mqtt.constants import QOS_1, QOS_2
@@ -26,6 +16,8 @@ import aiocron
 import json
 import datetime
 import re
+import pandas as pd
+from os import path
 
 class App:
     def __init__(self, args, logger):
@@ -67,10 +59,31 @@ class App:
             packet = msg.publish_packet
             payload = packet.payload.data.decode('utf-8')
             payload = json.loads(payload)
-            self.logger.debug(f'{payload}\n')
+            # self.logger.debug(f'{payload}\n')
             if payload['action'] == 'per_min_history':
-                pass # do something here
-   
+                filename = f"dataset/{payload['code']}.1m.history.csv"
+                del payload['action']
+                del payload['code']
+
+                self.logger.debug(f'{len(payload)} received')
+                async with aiofiles.open(filename, 'a+') as f:
+                    if f.tell() == 0: # if size is 0
+                        await f.write("date, current, volume\n")
+                    for d in payload:
+                        date = datetime.datetime.strptime(d, '%Y%m%d %H%M')
+                        date = date.strftime("%d/%m/%Y %H:%M:%S")
+                        current = payload[d]['current']
+                        volume = payload[d]['volume']
+                        line = f"{date}, {current}, {volume}\n"
+                        await f.write(line)
+
+                # df = pd.DataFrame.from_dict(payload, orient="index", columns=['current', 'volume'])
+                # if not path.exists('data.csv'):
+                #     df.to_csv("data.csv", mode='w', header=True)
+                # else:
+                #     df.to_csv("data.csv", mode='a', header=False)
+
+
     async def request_for_download(self, assets=[]):
         if assets:
             msg = {'action': 'get_per_min_history', 'assets': assets}

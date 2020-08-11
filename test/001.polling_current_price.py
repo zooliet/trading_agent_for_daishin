@@ -7,16 +7,6 @@ sys.path.insert(0, '.')
 sys.path.insert(0, '..')
 # print(sys.path)
 
-# logger 셋팅
-import logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
-
-# debugger 셋팅
-import pdb
-import rlcompleter
-pdb.Pdb.complete=rlcompleter.Completer(locals()).complete
-
 import asyncio
 from hbmqtt.client import MQTTClient, ConnectException
 from hbmqtt.mqtt.constants import QOS_1, QOS_2
@@ -67,7 +57,7 @@ class App:
             payload = json.loads(payload)
             self.logger.debug(f'{payload}\n')
             if payload['action'] == 'current_price':
-                filename = f"dataset/{payload['code']}.csv"
+                filename = f"dataset/{payload['code']}.1m.polling.csv"
                 async with aiofiles.open(filename, 'a+') as f:
                     date = datetime.date.today().strftime("%Y-%m-%d")
                     # date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")

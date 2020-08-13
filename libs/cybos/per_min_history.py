@@ -51,7 +51,7 @@ class PerMinHistory:
                     # self.logger.debug(f"[{received_total}/{num_requested}] {date} {time}: {open}(o), {close}(c), {vol}(v)")
                     # date_time = datetime.strptime(f'{date} {time:04d}', '%Y%m%d %H%M')
                     date_time = f'{date} {time:04d}'
-                    # message[date_time] = { 'current': close, 'volume': vol }
+                    # message[date_time] = { 'price': close, 'volume': vol }
                     message[date_time] = (close, vol)
 
                 self.logger.debug(f"[{received_total}/{num_requested}]")

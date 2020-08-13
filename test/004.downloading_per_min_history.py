@@ -67,14 +67,15 @@ class App:
 
                 self.logger.debug(f'{len(payload)} received')
                 async with aiofiles.open(filename, 'a+') as f:
-                    if f.tell() == 0: # if size is 0
-                        await f.write("date, current, volume\n")
+                    if await f.tell() == 0: # if size is 0
+                        await f.write("date,current,volume\n")
                     for d in payload:
                         date = datetime.datetime.strptime(d, '%Y%m%d %H%M')
-                        date = date.strftime("%d/%m/%Y %H:%M:%S")
-                        current = payload[d]['current']
+                        # date = date.strftime("%d/%m/%Y %H:%M:%S")
+                        date = date.strftime("%Y-%m-%d %H:%M:%S")
+                        current = payload[d]['price']
                         volume = payload[d]['volume']
-                        line = f"{date}, {current}, {volume}\n"
+                        line = f"{date}, {price}, {volume}\n"
                         await f.write(line)
 
                 # df = pd.DataFrame.from_dict(payload, orient="index", columns=['current', 'volume'])

@@ -21,7 +21,7 @@ class PerMinHistory:
         self.mqtt = mqtt
 
     async def request(self, asset):
-        num_requested = 200 # upto 200000 (하루 약 400개=> 200000/400 = 500일)
+        num_requested = 20000 # upto 200000 (하루 약 390개=> 200000/390 = 500+일)
         client = win32com.client.Dispatch("CpSysDib.StockChart")
         client.SetInputValue(0, asset)
         client.SetInputValue(1, ord('2')) # 갯수로 받기
@@ -51,8 +51,8 @@ class PerMinHistory:
                     # self.logger.debug(f"[{received_total}/{num_requested}] {date} {time}: {open}(o), {close}(c), {vol}(v)")
                     # date_time = datetime.strptime(f'{date} {time:04d}', '%Y%m%d %H%M')
                     date_time = f'{date} {time:04d}'
-                    # message[date_time] = { 'current': close, 'volume': vol }
-                    message[date_time] = (close, vol)
+                    message[date_time] = { 'current': close, 'volume': vol }
+                    # message[date_time] = (close, vol)
 
                 self.logger.debug(f"[{received_total}/{num_requested}]")
                 message = bytearray(json.dumps(message), 'utf-8')
